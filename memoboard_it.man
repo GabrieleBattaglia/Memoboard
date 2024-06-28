@@ -1,0 +1,40 @@
+Memoboard di Gabriele Battaglia (IZ4APU) - maggio 2024.
+Questa piccola utility aiuta a famigliarizzare con la scacchiera. Lo scopo è quello di allenare il giocatore di scacchi a visualizzare più in fretta le 64 case durante l'analisi.
+Con la pratica quotidiana, ripetuta nel tempo con costanza, questi esericizi permetteranno di guadagnare molta velocità nello studio di posizioni e nella ricerca di mosse candidate.
+
+IMPORTANTE: l'efficacia di questi esercizi sarà effettiva solo e soltanto se questi vengono praticati senza guardare la scacchiera.
+
+Questo software è ideato e scritto in Python dal sottoscritto e viene distribuito senza alcuna garanzia. E' consentita la distribuzione attraverso qualsiasi canale ma non il disassemblaggio e/o la modifica del codice sorgente.
+Per richieste e segnalazione bugs, scrivetemi a iz4apu@libero.it
+
+L'applicazione non necessita di installazione. Può essere copiata in una catella di vostra scelta ed eseguita.
+Questo software è di tipo CLI (Command Line Interface), cioè privo di interfaccia grafica. A differenza dei programmi provvisti di GUI (Graphic User Interface), Memoboard viene eseguito in una finestra terminale, anche conoscouta come prompt dei comandi, o Windows terminal. Il che significa inoltre che non ci sono menù, finestre, pulsanti, caselle di controllo, caselle combinate, campi di editazione; non ci si sposta con tab o shift+tab e tipicamente non si chiude con alt+f4.
+Nel terminale, un cursore lampeggiante si trova nell'ultima riga in attesa di un comando. Il comando può essere un tasto premuto o una parola scritta sulla tastiera seguita dal tasto invio. Quando Memoboard riceve un comando produce un output, cioè una risposta scritta che compare subito sopra alla riga in cui si inseriscono i comandi e che, durante l'uso dell'applicazione scorre verso l'alto.
+Se un comando è composto da più lettere, ad esempio nel caso di "quit" utile per uscire dall'applicazione, può bastare anche premere la sola "q", dato che "quit" è l'unico comando che inizia con questa lettera, per ottenere l'effetto desiderato.
+Per imparare come leggere l'output nel terminale con il vostro screenreader, fate riferimento al manuale di quest'ultimo.
+
+Lanciamo quindi il nostro istruttore virtuale. Comparirà una schermata in cui Memoboard si presenta. L'ultima riga in fondo riporterà i comandi che è possibile impartire al programma. Vediamoli assieme.
+Il primo è "quit" o "q" che serve a chiudere il programma.
+Abbiamo po "help" che mostrerà questo stesso documento.
+Quindi troviamo "menu" che provocherà la visualizzazione di una lista con tutti i comandi disponibili ed una sintetica spiegazione per ciascuna voce.
+Ci sono poi "knights", "bishops" e "colors" che permettono di accedere ai singoli esercizi, nelle relative specialità. In ciascuno di questi esercizi potremmo decidere quanti tentativi vogliamo fare, terminati i quali verremo riportati a questo menù.
+"knights" ci farà accedere all'esercizio in cui dovremo indicare al computer se 2 case che ci vengono lette, si trovano a salto di cavallo fra di loro e dovremo rispondere "y" per yes, sì, oppure "n" per no.
+"bishops" invece ci chiederà se le 2 case riportate appartengono alla stessa diagonale, sono cioè a movimento di Alfiere ed anche qui faremo sapere all'app la nostra scelta con i tasti "y" per sì e "n" per no.
+"colors" invece ci presenterà una sola casa per volta e noi dovremo dire se si tratta di una casa bianca premendo la "w" di white, oppure nera premendo la "b" di black.
+Al termine di ogni esercizio, Memoboard salva un rapporto nel file memoboard.txt che troverete nella stessa cartella in cui risiede l'applicazione principale.
+Abbiamo poi il cuore pulsante di Memoboard, il super mega test finale.
+In questa modalità, non possiamo decidere quanti tentativi fare ma, sia la tipologia dell'esercizio che la sua durata sono predefiniti e stabiliti da quel cattivone del programmatore.
+Il super mega test finale si compone di 4 parti: 25 tentativi nell'esercizio del colore delle case, 25 per il salto di cavallo, altre 25 per il movimento dell'alfiere e, più difficile di tutti, ulteriori 25 tentativi scelti a caso fra i primi 3 tipi.
+Anche qui, al termine, un rapporto dettagliato viene aggiunto al solito memoboard.txt che potrete comodamente leggere quando lo desiderate, con il vostro editor di testi preferiti, il Blocco note di Windows andrà benone.
+
+Come funzionano i punteggi.
+Per rendere più divertenti gli esercizi, Memoboard assegna un punteggio al termine di ciascun esercizio. Potrete divertirvi a sfidare voi stessi ed i vostri amici cercando di superarvi in sfide sempre più avvicenti.
+Ecco come l'app assegna i punteggi.
+Dopo aver letto la, o le, case dell'esercizio, parte un timer nascosto che inizia a contare da 15 secondi a 0. Ogni millisecondo vale un punto, perciò, ogni millisecondo in cui pensate, la perfida applicazione vi sotrarrà un punto partendo da un ammontare iniziale di 15000 punti.
+Se la vostra risposta sarà esatta, i punti che avete guadagnato verranno aggiunti al vostro totale, mentre in caso di risposta sbagliata, naturalmente non guadagnerete alcun punteggio.
+L'assegnazione dei punteggi funziona allo stesso modo per i 3 esercizi di colore, cavallo e alfiere, mentre, data la difficoltà, vi viene assegnato un bonus nell'esercizio misto.
+Come sempre, il tutto viene riportato in memoboard.txt.
+E per concludere, vi ricordo che ogni volta che utilizzate l'app, questo registro, memoboard.txt, viene scritto, i nuovi dati vengono aggiunti infondo al file; dopo un certo periodo di tempo perciò, specialmente se usate spesso l'applicazione, il registro potrebbe tendere a crescere un po. Per tanto, quando volete potete cancellarlo senza problemi: se Memoboard non lo trova, ne creerà uno nuovo.
+
+Grazie per aver letto questo manuale, vi auguro buon divertimento con Memoboard e, soprattutto, di imparare il gioco alla cieca, abilità molto importante per qualsiasi scacchista di grande successo.
+Gabriele Battaglia.
