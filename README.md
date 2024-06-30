@@ -2,7 +2,11 @@
 An helper to play faster chess without touching or watching the board. Exercises with diagonals, knight's jump and square colours.
 ## Memoboard by Gabriele Battaglia (IZ4APU) - May 2024
 
-This small utility helps to familiarize yourself with the chessboard. The goal is to train the chess player to quickly visualize the 64 squares during analysis.
+## Se esegui lo script Python, assicurati di avere GBUtils.py nella stessa cartella. Puoi scaricarlo dall'omonimo progetto su GitHub.
+
+## If you're running the python script, be sure to have GBUtils.py on the same folder. You can grab it from the GBUtils project here on GitHub.
+
+## This small utility helps to familiarize yourself with the chessboard. The goal is to train the chess player to quickly visualize the 64 squares during analysis.
 
 With daily practice, repeated over time with consistency, these exercises will allow you to gain a lot of speed in studying positions and finding candidate moves.
 
