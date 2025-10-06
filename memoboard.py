@@ -3,11 +3,11 @@
 # June 28th, 2024: moved on Github
 
 #QI
-from GBUtils import key, dgt, menu, manuale
+from GBUtils import key, dgt, menu, manuale, enter_escape
 import time, datetime, random, json, os
 
 # CONST
-VERSION="2.5.7, October 6th, 2025 by Gabriele Battaglia (IZ4APU) & Gemini 2.5 Pro"
+VERSION="2.5.8, October 6th, 2025 by Gabriele Battaglia (IZ4APU) & Gemini 2.5 Pro"
 READING_TIME=0.8 # Tempo di lettura delle domande in secondi, da parte della sintesi vocale
 STARTTIME=time.time()
 SCORES_FILE = "memoboard_scores.json" 
@@ -266,7 +266,7 @@ def ExKnights(ripetitions):
     score=0; wins=0; scoretime=15
     timeex=time.time()
     timeslist=[]; scoreslist=[]
-    
+    errors_list = []
     knight_moves = [(1, 2), (1, -2), (-1, 2), (-1, -2), (2, 1), (2, -1), (-2, 1), (-2, -1)]
 
     while ripetitions > 0:
@@ -282,10 +282,11 @@ def ExKnights(ripetitions):
                 new_x, new_y = x + dx, y + dy
                 if ord('A') <= new_x <= ord('H') and ord('1') <= new_y <= ord('8'):
                     possible_sq2.append(f"{chr(new_x)}{chr(new_y)}")
-            if not possible_sq2: continue # Se il cavallo è bloccato, salta il turno
+            if not possible_sq2: continue
             sq2 = random.choice(possible_sq2)
 
-        print(f"\n{columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}",end="",flush=True)
+        question_str = f"Knight move: {sq1}-{sq2}"
+        print(f"\nKnight: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}",end="",flush=True)
         time.sleep(READING_TIME)
         now=time.time()
         s=key().lower()
@@ -298,27 +299,36 @@ def ExKnights(ripetitions):
             score+=singlescore
             scoreslist.append(singlescore)
             timeslist.append(time.time()-now)
-
+        else:
+            errors_list.append({
+                "question": question_str,
+                "user_answer": s,
+                "correct_answer": "y" if yes else "n"
+            })
         ripetitions-=1
         
     duration=time.time()-timeex
-    return score,scoreslist,duration,timeslist,wins
-
+    return score,scoreslist,duration,timeslist,wins,errors_list
 def ExBishops(ripetitions):
     '''Exercise on bishops'''
     score=0; wins=0; scoretime=15
     timeex=time.time()
     timeslist=[]; scoreslist=[]
+    errors_list = []
+
     while ripetitions>0:
         kd=random.choice(list(diagonals.keys()))
         sq1=random.choice(diagonals[kd])
         yes=random.choice([True,False])
+        
         if not yes: sq2=Prox(sq1,'B', range_limit=7)
         else:
             while True:
                 sq2=random.choice(diagonals[kd])
                 if sq1!=sq2: break
-        print(f"\n{columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}",end="",flush=True)
+        
+        question_str = f"Same diagonal: {sq1}-{sq2}"
+        print(f"\nBishop: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}",end="",flush=True)
         time.sleep(READING_TIME)
         now=time.time()
         s=key().lower()
@@ -331,21 +341,24 @@ def ExBishops(ripetitions):
             score+=singlescore
             scoreslist.append(singlescore)
             timeslist.append(time.time()-now)
+        else:
+            errors_list.append({
+                "question": question_str,
+                "user_answer": s,
+                "correct_answer": "y" if yes else "n"
+            })
         ripetitions-=1
     duration=time.time()-timeex
-    return score,scoreslist,duration,timeslist,wins
+    return score,scoreslist,duration,timeslist,wins,errors_list
 def ExMixed(ripetitions):
     """
     Esegue una serie di domande di tipo misto, annunciando il tipo
-    di ogni domanda prima di porla.
+    di ogni domanda e registrando gli errori.
     """
-    score = 0
-    wins = 0
-    scoretime = 15
+    score = 0; wins = 0; scoretime = 15
     timeex = time.time()
-    timeslist = []
-    scoreslist = []
-    
+    errors_list = []
+    color_map = {'w': 'White', 'b': 'Black'}
     knight_moves = [(1, 2), (1, -2), (-1, 2), (-1, -2), (2, 1), (2, -1), (-2, 1), (-2, -1)]
 
     while ripetitions > 0:
@@ -356,15 +369,20 @@ def ExMixed(ripetitions):
             print(f"\nColor: {columns[sq[0]]} {sq[1]} ", end="", flush=True)
             time.sleep(READING_TIME)
             now = time.time()
-            s = key().lower()
+            s = enter_escape()
             singlescore = (scoretime * 1000) - (time.time() - now) * 1000
             if singlescore < 0: singlescore = 0
             
-            if s == get_square_color(sq):
+            correct_answer = get_square_color(sq)
+            if s == correct_answer:
                 wins += 1
                 score += singlescore
-                scoreslist.append(singlescore)
-                timeslist.append(time.time() - now)
+            else:
+                errors_list.append({
+                    "question": f"Color of {sq}",
+                    "user_answer": color_map.get(s, f"'{s}'"),
+                    "correct_answer": color_map.get(correct_answer)
+                })
 
         elif exercise_type == 'knights':
             sq1 = random.choice(board)
@@ -382,6 +400,7 @@ def ExMixed(ripetitions):
                 if not possible_sq2: continue
                 sq2 = random.choice(possible_sq2)
 
+            question_str = f"Knight move: {sq1}-{sq2}"
             print(f"\nKnight: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}", end="", flush=True)
             time.sleep(READING_TIME)
             now = time.time()
@@ -393,20 +412,25 @@ def ExMixed(ripetitions):
             if correct:
                 wins += 1
                 score += singlescore
-                scoreslist.append(singlescore)
-                timeslist.append(time.time() - now)
+            else:
+                errors_list.append({
+                    "question": question_str,
+                    "user_answer": s,
+                    "correct_answer": "y" if yes else "n"
+                })
 
         elif exercise_type == 'bishops':
             kd = random.choice(list(diagonals.keys()))
             sq1 = random.choice(diagonals[kd])
             yes = random.choice([True, False])
             if not yes:
-                sq2 = Prox(sq1, 'B', range_limit=3)
+                sq2 = Prox(sq1, 'B', range_limit=7)
             else:
                 while True:
                     sq2 = random.choice(diagonals[kd])
                     if sq1 != sq2: break
             
+            question_str = f"Same diagonal: {sq1}-{sq2}"
             print(f"\nBishop: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}", end="", flush=True)
             time.sleep(READING_TIME)
             now = time.time()
@@ -418,40 +442,51 @@ def ExMixed(ripetitions):
             if correct:
                 wins += 1
                 score += singlescore
-                scoreslist.append(singlescore)
-                timeslist.append(time.time() - now)
+            else:
+                errors_list.append({
+                    "question": question_str,
+                    "user_answer": s,
+                    "correct_answer": "y" if yes else "n"
+                })
 
         ripetitions -= 1
         
     duration = time.time() - timeex
-    # Ritorniamo solo i valori aggregati che ci servono per il totale del test
-    return score, duration, wins
-
+    return score, duration, wins, errors_list
 def ExColors(ripetitions):
     '''Exercise on colors'''
     score=0; wins=0; scoretime=15
     timeex=time.time()
     timeslist=[]; scoreslist=[]
+    errors_list = []
+    color_map = {'w': 'White', 'b': 'Black'}
+
     while ripetitions>0:
         sq = random.choice(board)
-        print(f"\n{columns[sq[0]]} {sq[1]} ",end="",flush=True)
+        print(f"\nIs {columns[sq[0]]} {sq[1]} a white?",end="",flush=True)
         time.sleep(READING_TIME)
         now = time.time()
-        s = key().lower()
+        s = enter_escape()
         singlescore = (scoretime*1000)-(time.time()-now)*1000
         if singlescore < 0: singlescore = 0
         
-        if s == get_square_color(sq):
+        correct_color = get_square_color(sq)
+        if correct_color=="w" and s==True:
+            timeslist.append(time.time()-now)
             wins+=1
             score+=singlescore
             scoreslist.append(singlescore)
-            timeslist.append(time.time()-now)
+        else:
+            errors_list.append({
+                "question": f"Color of {sq}",
+                "user_answer": color_map.get(s, f"'{s}'"),
+                "correct_answer": color_map.get(correct_color)
+            })
         
         ripetitions-=1
         
     duration = time.time()-timeex
-    return score,scoreslist,duration,timeslist,wins
-
+    return score,scoreslist,duration,timeslist,wins,errors_list
 def main():
     # <<< MODIFICA: Carica i punteggi e chiede il nome utente all'inizio
     all_scores = load_scores()
