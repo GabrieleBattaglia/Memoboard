@@ -1,0 +1,77 @@
+### **Memoboard di Gabriele Battaglia (IZ4APU) - ottobre 2025**
+
+Questa piccola utility aiuta a famigliarizzare con la scacchiera. Lo scopo è quello di allenare il giocatore di scacchi a visualizzare più in fretta le 64 case durante l'analisi, ora con l'aggiunta di tracciamento personalizzato dei progressi e classifiche per sfidare sé stessi e gli amici.
+
+Con la pratica quotidiana, ripetuta nel tempo con costanza, questi esercizi permetteranno di guadagnare molta velocità nello studio di posizioni e nella ricerca di mosse candidate.
+
+**IMPORTANTE**: l'efficacia di questi esercizi sarà effettiva solo e soltanto se questi vengono praticati senza guardare la scacchiera.
+
+Questo software è ideato e scritto in Python dal sottoscritto e viene distribuito senza alcuna garanzia. È consentita la distribuzione attraverso qualsiasi canale ma non il disassemblaggio e/o la modifica del codice sorgente. Per richieste e segnalazione bugs, scrivetemi a iz4apu@libero.it
+
+---
+### **Descrizione dell'applicazione**
+
+L'applicazione non necessita di installazione. Può essere copiata in una cartella di vostra scelta ed eseguita.
+
+Questo software è di tipo CLI (Command Line Interface), cioè privo di interfaccia grafica. Nel terminale, un cursore lampeggiante si trova nell'ultima riga in attesa di un comando. Il comando può essere un tasto premuto o una parola scritta sulla tastiera seguita dal tasto invio.
+
+Se un comando è composto da più lettere, ad esempio nel caso di "quit", può bastare anche premere la sola "q", dato che "quit" è l'unico comando che inizia con questa lettera, per ottenere l'effetto desiderato. Per imparare come leggere l'output nel terminale con il vostro screenreader, fate riferimento al manuale di quest'ultimo.
+
+---
+### **Avvio e Comandi di Memoboard**
+
+Quando lanci Memoboard, la prima cosa che ti verrà chiesta è il tuo **nome utente**. Questo nome verrà usato per salvare i tuoi record personali e per mostrarti in classifica.
+
+Successivamente, comparirà la schermata di presentazione. L'ultima riga in fondo riporterà i comandi principali. Vediamoli assieme:
+
+* `quit`: Chiude il programma.
+* `help`: Mostra questo stesso documento.
+* `menu`: Visualizza la lista di tutti i comandi disponibili.
+* `knights`, `bishops`, `colors`: Permettono di accedere ai singoli esercizi. Potrai decidere quanti tentativi effettuare.
+    * `knights`: Dovrai dire se due case si trovano a salto di cavallo (`y` per sì, `n` per no).
+    * `bishops`: Dovrai dire se due case appartengono alla stessa diagonale (`y` per sì, `n` per no).
+    * `colors`: Dovrai dire di che colore è una casa (`w` per bianco, `b` per nero).
+* `chart`: Mostra la classifica. Potrai scegliere un esercizio e visualizzare una graduatoria dettagliata di tutti gli utenti.
+* `test`: Il super mega test finale, con un numero di tentativi predefinito per ogni specialità.
+
+Al termine di ogni esercizio, vedrai un riepilogo dei tuoi risultati. Se hai già un punteggio salvato, apparirà un confronto dettagliato delle performance.
+
+---
+### **Novità: Profili Utente e Classifiche**
+
+Memoboard ora salva le tue performance per permetterti di monitorare i progressi e competere con gli altri.
+
+#### **Profili Utente e File Dati**
+I tuoi risultati vengono salvati sotto il nome utente che fornisci all'avvio. Tutti i dati sono memorizzati nel file `memoboard_scores.json`, che troverai nella stessa cartella dell'applicazione. Questo file è il database che contiene i tuoi record personali e quelli di tutti gli altri giocatori.
+
+#### **Report di Confronto delle Performance**
+Alla fine di un esercizio, se esiste un tuo record precedente, Memoboard ti mostrerà una tabella di confronto. Questa confronta la tua performance **Attuale** con quella **Precedente**, evidenziando la differenza sia in valore assoluto che in percentuale. È un modo immediato per vedere i tuoi miglioramenti.
+
+#### **La Classifica (comando `chart`)**
+Il comando `chart` apre una classifica dettagliata. Puoi scegliere per quale esercizio visualizzare la graduatoria, e l'app mostrerà la lista di tutti gli utenti ordinata per performance. La classifica include dettagli come il numero di tentativi, la percentuale di successo, il tempo impiegato e la data del record.
+
+---
+### **Come funzionano i punteggi**
+
+Per rendere più divertenti gli esercizi, Memoboard assegna un punteggio al termine di ciascuna sessione.
+
+#### **Meccanismo del Punteggio**
+Dopo aver letto la, o le, case dell'esercizio, parte un timer nascosto che inizia a contare da 15.000 punti. Ogni millisecondo in cui pensate, la perfida applicazione vi sotrarrà un punto. Se la vostra risposta sarà esatta, i punti rimasti verranno aggiunti al vostro totale. In caso di risposta sbagliata, non guadagnerete alcun punteggio.
+
+#### **La Metrica Principale: Punti al Minuto**
+Sebbene il `Punteggio Totale` sia importante, la metrica usata per la classifica è **Punti al Minuto**. Questo valore misura la tua **efficienza**, ovvero la velocità con cui ottieni punti. Viene calcolato dividendo il punteggio totale per la durata dell'esercizio. Questo garantisce che una sessione breve, veloce e precisa sia valutata meglio di una sessione più lunga in cui si sono accumulati più punti ma con un ritmo inferiore.
+
+---
+### **File di Log e File Dati**
+
+Memoboard ora utilizza due file distinti:
+
+1.  **memoboard.txt (File di Log)**: Questo file è un semplice registro cronologico. Salva un resoconto di ogni esercizio che completi, aggiungendo sempre le nuove informazioni in fondo. Puoi cancellarlo tranquillamente quando vuoi: Memoboard, se non lo trova, ne creerà uno nuovo.
+2.  **memoboard_scores.json (File Dati)**: **ATTENZIONE, questo è un file importante.** Contiene tutti i profili utente, i record personali e i dati della classifica. Se cancelli questo file, **tutti i punteggi salvati andranno persi definitivamente**.
+
+---
+### **Conclusione**
+
+Grazie per aver letto questo manuale, vi auguro buon divertimento con Memoboard e, soprattutto, di imparare il gioco alla cieca, abilità molto importante per qualsiasi scacchista di grande successo.
+
+Gabriele Battaglia.

@@ -1,0 +1,34 @@
+{
+  "Gabry": {
+    "knights": {
+      "score": 168148.71168136597,
+      "wins": 13,
+      "repetitions": 15,
+      "duration": 44.3014554977417,
+      "average_time_per_guess": 2.9534303665161135,
+      "score_per_win": 12934.516283181998,
+      "timestamp": "2025-10-05T19:57:37.744062",
+      "score_per_minute": 227733.43646454797
+    },
+    "bishops": {
+      "score": 249317.41952896118,
+      "wins": 19,
+      "repetitions": 20,
+      "duration": 57.171337604522705,
+      "average_time_per_guess": 2.8585668802261353,
+      "score_per_win": 13121.969448892694,
+      "timestamp": "2025-10-05T22:14:33.774801",
+      "score_per_minute": 261652.8805957881
+    },
+    "colors": {
+      "score": 303310.5757236481,
+      "wins": 23,
+      "repetitions": 30,
+      "duration": 76.18340730667114,
+      "average_time_per_guess": 2.5394469102223716,
+      "score_per_win": 13187.416335810785,
+      "timestamp": "2025-10-05T22:17:07.110668",
+      "score_per_minute": 238879.24138338308
+    }
+  }
+}
