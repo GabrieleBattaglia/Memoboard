@@ -21,14 +21,24 @@
       "score_per_minute": 261652.8805957881
     },
     "colors": {
-      "score": 303310.5757236481,
-      "wins": 23,
+      "score": 378114.9306297302,
+      "wins": 29,
       "repetitions": 30,
-      "duration": 76.18340730667114,
-      "average_time_per_guess": 2.5394469102223716,
-      "score_per_win": 13187.416335810785,
-      "timestamp": "2025-10-05T22:17:07.110668",
-      "score_per_minute": 238879.24138338308
+      "duration": 82.01131272315979,
+      "average_time_per_guess": 2.7337104241053263,
+      "score_per_win": 13038.445883783801,
+      "timestamp": "2025-10-06T07:15:35.250505",
+      "score_per_minute": 276631.29737194284
+    },
+    "mixed": {
+      "score": 1065703.7851810455,
+      "wins": 92,
+      "repetitions": 100,
+      "duration": 460.2087664604187,
+      "average_time_per_guess": 4.602087664604187,
+      "score_per_win": 11583.736795446148,
+      "timestamp": "2025-10-06T06:48:39.494022",
+      "score_per_minute": 138941.78418776867
     }
   }
 }

@@ -7,18 +7,21 @@ from GBUtils import key, dgt, menu, manuale
 import time, datetime, random, json, os
 
 # CONST
-VERSION="2.5.0, October 2025 by Gabriele Battaglia (IZ4APU) & Gemini 2.5 Pro"
+VERSION="2.5.7, October 6th, 2025 by Gabriele Battaglia (IZ4APU) & Gemini 2.5 Pro"
+READING_TIME=0.8 # Tempo di lettura delle domande in secondi, da parte della sintesi vocale
 STARTTIME=time.time()
 SCORES_FILE = "memoboard_scores.json" 
 # --- VARIABILI GLOBALI ---
-mnu={"quit":"to quit the app",
+mnu={
      "help":"to read instruction on MemoBoard",
-     "menu":"to read this menu",
      "knights":"Execise with knights",
      "bishops":"Exercise with diagonals",
      "colors":"This square is white or black?",
-     "test":"Take your test on all skills!"}
-log=open("memoboard.txt","a+") # Usiamo 'a+' che è più standard per appendere e leggere
+     "mixed": "Take the 100 questions mixed challenge!",
+     "?":"to read this menu",
+     ".":"to quit the app"
+     }
+log=open("memoboard.txt","a+")
 log.write(f"\n# {time.asctime()} Hello, Memoboard {VERSION} starts.")
 
 board_set=set()
@@ -177,7 +180,7 @@ def report_and_update_scores(all_scores, username, exercise_name, rpt, score, du
     log.write(f"\nCorrect answers: {wins}/{rpt} in {duration:.1f}s. Score: {score:.0f}. Performance: {new_results['score_per_minute']:.0f} p/min")
 def show_leaderboard(all_scores):
     """
-    Shows a detailed leaderboard for a chosen exercise, sorted by points per minute.
+    Shows a detailed leaderboard, including average response time.
     """
     if not all_scores:
         print("\nThere are no scores recorded yet to show a leaderboard.")
@@ -185,69 +188,77 @@ def show_leaderboard(all_scores):
         return
 
     print("\nWhich exercise leaderboard would you like to see?")
-    exercise_types = sorted(list(mnu.keys() - {'quit', 'help', 'menu', 'chart'}))
-    for i, ex_type in enumerate(exercise_types, 1):
-        print(f" {i}. {ex_type.capitalize()}")
     
-    print("\nPress the corresponding number...")
-    selected_exercise = None
-    valid_choices = [str(i) for i in range(1, len(exercise_types) + 1)]
+    valid_exercises = ['colors', 'knights', 'bishops', 'mixed']
+    exercise_types = sorted([key for key in mnu.keys() if key in valid_exercises])
     
-    while True:
-        choice_char = key()
-        if choice_char in valid_choices:
-            selected_exercise = exercise_types[int(choice_char) - 1]
-            break
+    menu_options = {key: mnu[key] for key in exercise_types if key in mnu}
 
-    # Raccogliamo tutti i dati necessari per la visualizzazione
+    selected_exercise = menu(d=menu_options, show=True, keyslist=True, ntf="Invalid choice")
+
+    if not selected_exercise:
+        return
+
     leaderboard_data = []
     for user, data in all_scores.items():
         if selected_exercise in data:
             ex_data = data[selected_exercise]
-            # Usiamo .get() con valori di default per la massima compatibilità
+            score = ex_data.get("score", 0)
             performance = ex_data.get("score_per_minute", 0)
             reps = ex_data.get("repetitions", 0)
             wins = ex_data.get("wins", 0)
             duration = ex_data.get("duration", 0)
             timestamp = ex_data.get("timestamp", None)
-            leaderboard_data.append((user, performance, reps, wins, duration, timestamp))
+            # <<< MODIFICA: Recuperiamo il tempo medio, che è già salvato
+            avg_time = ex_data.get("average_time_per_guess", 0)
+            leaderboard_data.append((user, score, performance, reps, wins, duration, timestamp, avg_time))
 
     if not leaderboard_data:
         print(f"\nNo scores found for the '{selected_exercise}' exercise.")
     else:
-        # Ordiniamo sempre per performance (punti al minuto)
-        sorted_leaderboard = sorted(leaderboard_data, key=lambda item: item[1], reverse=True)
-
-        # <<< MODIFICA: Nuova intestazione della tabella, più dettagliata
-        print(f"\n--- 🏆 LEADERBOARD: {selected_exercise.upper()} 🏆 ---")
-        header = f"{'Pos':<4} {'User':<12} {'Atts':>4} {'Win%':>5} {'Time':>6} {'Score':>8} {'Date':>17}"
-        print(header)
-        print("-" * len(header))
-
-        for i, item in enumerate(sorted_leaderboard, 1):
-            user, performance, reps, wins, duration, timestamp = item
-
-            # Formattiamo i dati per la visualizzazione
-            user_display = user[:12]  # Tronca il nome utente a 12 caratteri
-            accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/A"
-            time_str = f"{int(duration // 60):02d}:{int(duration % 60):02d}"
+        if selected_exercise == 'mixed':
+            sorted_leaderboard = sorted(leaderboard_data, key=lambda item: item[1], reverse=True)
             
-            date_str = "N/A"
-            if timestamp:
-                try:
-                    # Converte la stringa ISO in oggetto datetime e poi la formatta
-                    date_obj = datetime.datetime.fromisoformat(timestamp)
-                    date_str = date_obj.strftime('%Y-%m-%d %H:%M')
-                except (ValueError, TypeError):
-                    date_str = "Invalid Date" # Se il formato non è corretto
+            print(f"\n--- 🏆 LEADERBOARD: {selected_exercise.upper()} (Ranked by Total Score) 🏆 ---")
+            # <<< MODIFICA: Aggiunta la colonna 'Avg(s)'
+            header = f"{'Pos':<4} {'User':<12} {'Score':>10} {'P/Min':>8} {'Win%':>5} {'Avg(s)':>7} {'Time':>6} {'Date':>17}"
+            print(header)
+            print("-" * len(header))
 
-            # <<< MODIFICA: Stampa la riga con tutte le nuove informazioni
-            row = f"{i:<4} {user_display:<12.12} {reps:>4} {accuracy_str:>5} {time_str:>6} {performance:>8.0f} {date_str:>17}"
-            print(row)
-        
-        print("-" * len(header))
+            for i, item in enumerate(sorted_leaderboard, 1):
+                # <<< MODIFICA: Estraiamo avg_time
+                user, score, performance, reps, wins, duration, timestamp, avg_time = item
+                accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/A"
+                time_str = f"{int(duration // 60):02d}:{int(duration % 60):02d}"
+                date_str = datetime.datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else "N/A"
+                
+                # <<< MODIFICA: Aggiungiamo avg_time alla riga
+                row = f"{i:<4} {user[:12]:<12} {score:>10.0f} {performance:>8.0f} {accuracy_str:>5} {avg_time:>7.2f} {time_str:>6} {date_str:>17}"
+                print(row)
+            print("-" * len(header))
+
+        else: 
+            sorted_leaderboard = sorted(leaderboard_data, key=lambda item: item[2], reverse=True)
+            
+            print(f"\n--- 🏆 LEADERBOARD: {selected_exercise.upper()} (Ranked by Points/Min) 🏆 ---")
+            # <<< MODIFICA: Sostituita la colonna 'Time' con 'Avg(s)' e rinominata 'Score' in 'P/Min' per chiarezza
+            header = f"{'Pos':<4} {'User':<12} {'Atts':>4} {'Win%':>5} {'Avg(s)':>7} {'P/Min':>8} {'Date':>17}"
+            print(header)
+            print("-" * len(header))
+
+            for i, item in enumerate(sorted_leaderboard, 1):
+                # <<< MODIFICA: Estraiamo avg_time
+                user, _, performance, reps, wins, _, timestamp, avg_time = item
+                accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/A"
+                date_str = datetime.datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else "N/A"
+                
+                # <<< MODIFICA: Aggiungiamo avg_time e rimuoviamo il tempo totale
+                row = f"{i:<4} {user[:12]:<12} {reps:>4} {accuracy_str:>5} {avg_time:>7.2f} {performance:>8.0f} {date_str:>17}"
+                print(row)
+            print("-" * len(header))
 
     key(prompt="\nPress any key to return to the menu...")
+
 # --- FUNZIONI DEGLI ESERCIZI ---
 
 def ExKnights(ripetitions):
@@ -275,7 +286,7 @@ def ExKnights(ripetitions):
             sq2 = random.choice(possible_sq2)
 
         print(f"\n{columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}",end="",flush=True)
-        time.sleep(.8)
+        time.sleep(READING_TIME)
         now=time.time()
         s=key().lower()
         singlescore = (scoretime*1000) - (time.time()-now)*1000
@@ -302,13 +313,13 @@ def ExBishops(ripetitions):
         kd=random.choice(list(diagonals.keys()))
         sq1=random.choice(diagonals[kd])
         yes=random.choice([True,False])
-        if not yes: sq2=Prox(sq1,'B', range_limit=3)
+        if not yes: sq2=Prox(sq1,'B', range_limit=7)
         else:
             while True:
                 sq2=random.choice(diagonals[kd])
                 if sq1!=sq2: break
         print(f"\n{columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}",end="",flush=True)
-        time.sleep(.8)
+        time.sleep(READING_TIME)
         now=time.time()
         s=key().lower()
         singlescore = (scoretime*1000)-(time.time()-now)*1000
@@ -323,6 +334,98 @@ def ExBishops(ripetitions):
         ripetitions-=1
     duration=time.time()-timeex
     return score,scoreslist,duration,timeslist,wins
+def ExMixed(ripetitions):
+    """
+    Esegue una serie di domande di tipo misto, annunciando il tipo
+    di ogni domanda prima di porla.
+    """
+    score = 0
+    wins = 0
+    scoretime = 15
+    timeex = time.time()
+    timeslist = []
+    scoreslist = []
+    
+    knight_moves = [(1, 2), (1, -2), (-1, 2), (-1, -2), (2, 1), (2, -1), (-2, 1), (-2, -1)]
+
+    while ripetitions > 0:
+        exercise_type = random.choice(['colors', 'knights', 'bishops'])
+
+        if exercise_type == 'colors':
+            sq = random.choice(board)
+            print(f"\nColor: {columns[sq[0]]} {sq[1]} ", end="", flush=True)
+            time.sleep(READING_TIME)
+            now = time.time()
+            s = key().lower()
+            singlescore = (scoretime * 1000) - (time.time() - now) * 1000
+            if singlescore < 0: singlescore = 0
+            
+            if s == get_square_color(sq):
+                wins += 1
+                score += singlescore
+                scoreslist.append(singlescore)
+                timeslist.append(time.time() - now)
+
+        elif exercise_type == 'knights':
+            sq1 = random.choice(board)
+            yes = random.choice([True, False])
+            
+            if not yes:
+                sq2 = Prox(sq1, 'N', range_limit=2)
+            else:
+                x, y = ord(sq1[0]), ord(sq1[1])
+                possible_sq2 = []
+                for dx, dy in knight_moves:
+                    new_x, new_y = x + dx, y + dy
+                    if ord('A') <= new_x <= ord('H') and ord('1') <= new_y <= ord('8'):
+                        possible_sq2.append(f"{chr(new_x)}{chr(new_y)}")
+                if not possible_sq2: continue
+                sq2 = random.choice(possible_sq2)
+
+            print(f"\nKnight: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}", end="", flush=True)
+            time.sleep(READING_TIME)
+            now = time.time()
+            s = key().lower()
+            singlescore = (scoretime * 1000) - (time.time() - now) * 1000
+            if singlescore < 0: singlescore = 0
+            
+            correct = (s == "y" and yes) or (s == "n" and not yes)
+            if correct:
+                wins += 1
+                score += singlescore
+                scoreslist.append(singlescore)
+                timeslist.append(time.time() - now)
+
+        elif exercise_type == 'bishops':
+            kd = random.choice(list(diagonals.keys()))
+            sq1 = random.choice(diagonals[kd])
+            yes = random.choice([True, False])
+            if not yes:
+                sq2 = Prox(sq1, 'B', range_limit=3)
+            else:
+                while True:
+                    sq2 = random.choice(diagonals[kd])
+                    if sq1 != sq2: break
+            
+            print(f"\nBishop: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}", end="", flush=True)
+            time.sleep(READING_TIME)
+            now = time.time()
+            s = key().lower()
+            singlescore = (scoretime * 1000) - (time.time() - now) * 1000
+            if singlescore < 0: singlescore = 0
+            
+            correct = (s == "y" and yes) or (s == "n" and not yes)
+            if correct:
+                wins += 1
+                score += singlescore
+                scoreslist.append(singlescore)
+                timeslist.append(time.time() - now)
+
+        ripetitions -= 1
+        
+    duration = time.time() - timeex
+    # Ritorniamo solo i valori aggregati che ci servono per il totale del test
+    return score, duration, wins
 
 def ExColors(ripetitions):
     '''Exercise on colors'''
@@ -332,7 +435,7 @@ def ExColors(ripetitions):
     while ripetitions>0:
         sq = random.choice(board)
         print(f"\n{columns[sq[0]]} {sq[1]} ",end="",flush=True)
-        time.sleep(.8)
+        time.sleep(READING_TIME)
         now = time.time()
         s = key().lower()
         singlescore = (scoretime*1000)-(time.time()-now)*1000
@@ -356,12 +459,12 @@ def main():
     username = input("\nPlease give me your name: ").strip().title()
     if not username:
         username = "DefaultUser"
-    print(f"\nWelcome back, {username}! Ready to train? Type 'help' or 'menu'.")
+    print(f"\nWelcome back, {username}! Ready to train? Type 'help' or '?'.")
     
     mnu["chart"] = "Show the leaderboard"
     while True:
         s=menu(d=mnu, ntf="Command not found", show=True, keyslist=True)
-        if s=="quit": break
+        if s==".": break
         
         elif s=="colors":
             print("Guess the square color.\n Please answer by pressing B for black and W for white.")
@@ -395,13 +498,23 @@ def main():
             show_leaderboard(all_scores)
 
         elif s=="help": manuale(nf="README.md")
-        elif s=="menu": menu(d=mnu,show=True)
+        elif s=="?": menu(d=mnu,show_only=True)
         
-        elif s=="test":
-            # Qui puoi integrare la stessa logica anche per il test
-            print("Funzione test non ancora integrata con il nuovo sistema di punteggio.")
-            pass 
-    
+        elif s == "mixed":
+            print("\nWelcome to the Mixed Challenge!")
+            print("100 questions of random types (colors, knights, bishops) will be presented.")
+            print("This is the ultimate test of your skills and endurance. Good luck!")
+            
+            key(prompt="Are you ready to begin? Go!")
+            
+            # Chiamiamo direttamente la funzione ExMixed con 100 tentativi
+            score, duration, wins = ExMixed(100)
+            rpt = 100 # Il numero di tentativi è fisso
+            
+            print("\n--- MIXED CHALLENGE COMPLETE! ---")
+            
+            # Passiamo i risultati alla nostra funzione di report
+            report_and_update_scores(all_scores, username, "mixed", rpt, score, duration, wins)
     # <<< MODIFICA: Salva tutti i punteggi prima di uscire
     save_scores(all_scores)
     
