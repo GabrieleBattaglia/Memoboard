@@ -1,12 +1,13 @@
-# MEMOBOARD - Il tuo assistente per giocare a scacchi senza scacchiera.
+# MEMOBOARD - Your helper to play chess without a chessboard.
 # Born on monday, may 6th, 2024 by Gabriele Battaglia IZ4APU.
 # June 28th, 2024: moved on Github
 
+#QI
 from GBUtils import key, dgt, menu, manuale, Acusticator
 import time, datetime, random, json, os
 
-# COSTANTI
-VERSION="2.7.0, 7 Ottobre 2025 by Gabriele Battaglia (IZ4APU) & Gemini 2.5 Pro"
+# CONST
+VERSION="2.7.0, October 7th, 2025 by Gabriele Battaglia (IZ4APU) & Gemini 2.5 Pro"
 READING_TIME=0.8 # Tempo di lettura delle domande in secondi, da parte della sintesi vocale
 STARTTIME=time.time()
 SCORES_FILE = "memoboard_scores.json" 
@@ -20,22 +21,22 @@ AUDIO_BAR_VOL=0.15
 
 # --- VARIABILI GLOBALI ---
 mnu={
-    "help":"per leggere le istruzioni su MemoBoard",
-    "knights":"Esercizio con i cavalli",
-    "bishops":"Esercizio con le diagonali",
-    "colors":"Questa casa è bianca o nera?",
-    "mixed": "Affronta la sfida mista da 100 domande!",
-    "?":"per leggere questo menu",
-    ".":"per uscire dall'app"
-    }
+     "help":"to read instruction on MemoBoard",
+     "knights":"Execise with knights",
+     "bishops":"Exercise with diagonals",
+     "colors":"This square is white or black?",
+     "mixed": "Take the 100 questions mixed challenge!",
+     "?":"to read this menu",
+     ".":"to quit the app"
+     }
 log=open("memoboard.txt","a+")
-log.write(f"\n# {time.asctime()} Ciao, Memoboard {VERSION} si avvia.")
+log.write(f"\n# {time.asctime()} Hello, Memoboard {VERSION} starts.")
 
 board_set=set()
 for y in "12345678":
     for x in "ABCDEFGH":
         board_set.add(f"{x}{y}")
-board=list(board_set) 
+board=list(board_set) # <<< MODIFICATO: Creazione della scacchiera semplificata
 
 columns={"A":"Alpha", "B":"Bravo", "C":"Charlie", "D":"Delta",
          "E":"Echo", "F":"Foxtrot", "G":"Golf", "H":"Hotel"}
@@ -72,10 +73,10 @@ def load_scores():
 def save_scores(scores_data):
     """
     Salva il dizionario dei punteggi nel file JSON.
+    Usa indent=4 per rendere il file leggibile.
     """
     with open(SCORES_FILE, 'w') as f:
         json.dump(scores_data, f, indent=2)
-
 # --- FUNZIONI HELPER ---
 
 def is_knight_move(sq1, sq2):
@@ -119,9 +120,10 @@ def Prox(sq, kind, range_limit):
 
 def report_and_update_scores(all_scores, username, exercise_name, rpt, score, duration, wins):
     """
-    Mostra un report dettagliato, confronta con i risultati precedenti e aggiorna i dati dell'utente.
-    Chiede conferma prima di sovrascrivere un record con un punteggio peggiore.
+    Shows a detailed report, compares with previous results, and updates the user's data.
+    Asks for confirmation before overwriting a record with a worse score.
     """
+    # 1. Prepare new results in a structured format
     new_results = {
         "score": score,
         "wins": wins,
@@ -134,39 +136,43 @@ def report_and_update_scores(all_scores, username, exercise_name, rpt, score, du
     
     new_results["score_per_minute"] = (score / duration) * 60 if duration > 0 else 0
 
-    print("\n--- Risultati Esercizio ---")
-    print(f"Hai ottenuto {wins} risposte corrette su {rpt}.")
-    print(f"Punteggio totale: {score:.0f} in {duration:.1f} secondi.")
-    print(f"Performance: {new_results['score_per_minute']:.0f} punti al minuto.")
+    print("\n--- Exercise Results ---")
+    print(f"You got {wins} correct answers out of {rpt}.")
+    print(f"Total score: {score:.0f} in {duration:.1f} seconds.")
+    print(f"Performance: {new_results['score_per_minute']:.0f} points per minute.")
 
     previous_results = all_scores.get(username, {}).get(exercise_name)
 
     should_save = True
 
     if previous_results:
-        print("\n--- Confronto Dettagliato vs. Precedente ---")
+        print("\n--- Detailed Comparison vs. Previous ---")
         
-        header = f"{'Metrica':<20} {'Precedente':>12} {'Attuale':>12} {'Differenza':<25}"
+        header = f"{'Metric':<20} {'Previous':>12} {'Current':>12} {'Difference':<25}"
         print(header)
         print("-" * len(header))
         
         metrics_to_compare = {
-            "Punti al Minuto": ("score_per_minute", ".0f"),
-            "Punteggio Totale": ("score", ".0f"),
-            "Risposte Corrette": ("wins", ".0f")
+            "Points per Minute": ("score_per_minute", ".0f"),
+            "Total Score": ("score", ".0f"),
+            "Correct Answers": ("wins", ".0f")
         }
 
+        # <<< QUI C'È LA CORREZIONE >>>
+        # Il ciclo for è stato corretto per formattare correttamente le stringhe.
         for label, (metric_key, fmt) in metrics_to_compare.items():
             old_val = previous_results.get(metric_key, 0)
             new_val = new_results.get(metric_key, 0)
             diff = new_val - old_val
             
-            perc_str = f"({(diff / old_val) * 100:+.2f}%)" if old_val != 0 else "(N/D)"
+            perc_str = f"({(diff / old_val) * 100:+.2f}%)" if old_val != 0 else "(N/A)"
             
+            # 1. Formattiamo i numeri in stringhe
             old_val_str = f"{old_val:{fmt}}"
             new_val_str = f"{new_val:{fmt}}"
             diff_str = f"{diff:+{fmt}} {perc_str}"
 
+            # 2. Ora applichiamo l'allineamento alle stringhe risultanti
             row = f"{label:<20} {old_val_str:>12} {new_val_str:>12} {diff_str:<25}"
             print(row)
         
@@ -178,11 +184,11 @@ def report_and_update_scores(all_scores, username, exercise_name, rpt, score, du
         new_performance = new_results.get(ranking_metric, 0)
 
         if new_performance < old_performance:
-            print("\nHai ottenuto un punteggio inferiore al precedente.")
-            answer = key("Vuoi sovrascrivere il tuo record con questo punteggio? (s/n): ").lower()
-            if answer != 's':
+            print("\nYou've got a lower score compared to that I have.")
+            answer = key("Do you want to overwrite your preview score with this one? (y/n): ").lower()
+            if answer != 'y':
                 should_save = False
-                print("Il vecchio punteggio è stato mantenuto.")
+                print("Old scored has been kept.")
         
         new_record_jingle = ['c5', 0.08, -0.7, EFFECT_VOLUME, 'e5', 0.08, -0.2, EFFECT_VOLUME, 'g5', 0.08, 0.2, EFFECT_VOLUME, 'c6', 0.15, 0.7, EFFECT_VOLUME]
         no_record_jingle = ['a4', 0.12, 0, EFFECT_VOLUME, 'e4', 0.20, 0, EFFECT_VOLUME]
@@ -191,10 +197,10 @@ def report_and_update_scores(all_scores, username, exercise_name, rpt, score, du
         else:
             Acusticator(no_record_jingle, kind=1)
         
-        key(prompt="\nPremi un tasto per procedere...")
+        key(prompt="\nAny key to proceed...")
 
     else:
-        print("\nQuesto è il tuo primo risultato per questo esercizio. Ottimo! Hai stabilito un nuovo record!")
+        print("\nThis is your first result for this exercise. Great! You got a new record!")
         first_record_jingle = ['g4', 0.07, -0.5, EFFECT_VOLUME, 'c5', 0.07, 0.5, EFFECT_VOLUME, 'e5', 0.1, 0, EFFECT_VOLUME]
         Acusticator(first_record_jingle, kind=1)
         key(prompt="\nPremi un tasto per continuare...")
@@ -204,29 +210,28 @@ def report_and_update_scores(all_scores, username, exercise_name, rpt, score, du
             all_scores[username] = {}
         all_scores[username][exercise_name] = new_results
         
-        log.write(f"\n## Esercizio '{exercise_name}' per {username}:")
-        log.write(f"\nRisposte corrette: {wins}/{rpt} in {duration:.1f}s. Punti: {score:.0f}. Performance: {new_results['score_per_minute']:.0f} p/min. [SALVATO]")
-        print("\nRisultato salvato!")
+        log.write(f"\n## Exercise '{exercise_name}' for {username}:")
+        log.write(f"\nCorrect answers: {wins}/{rpt} in {duration:.1f}s. Score: {score:.0f}. Performance: {new_results['score_per_minute']:.0f} p/min. [SAVED]")
+        print("\nResult saved!")
     else:
-        log.write(f"\n## Esercizio '{exercise_name}' per {username}: Nuovo punteggio di {score:.0f} scartato dall'utente. [SCARTATO]")
-
+        log.write(f"\n## Exercise '{exercise_name}' for {username}: New score of {score:.0f} was discarded by the user. [DISCARDED]")
 def show_leaderboard(all_scores):
     """
-    Mostra una classifica dettagliata.
+    Shows a detailed leaderboard, including average response time.
     """
     if not all_scores:
-        print("\nNon ci sono ancora punteggi registrati per mostrare una classifica.")
-        key(prompt="\nPremi un tasto per tornare al menu...")
+        print("\nThere are no scores recorded yet to show a leaderboard.")
+        key(prompt="\nPress any key to return to the menu...")
         return
 
-    print("\nQuale classifica vorresti vedere?")
+    print("\nWhich exercise leaderboard would you like to see?")
     
     valid_exercises = ['colors', 'knights', 'bishops', 'mixed']
     exercise_types = sorted([key for key in mnu.keys() if key in valid_exercises])
     
     menu_options = {key: mnu[key] for key in exercise_types if key in mnu}
 
-    selected_exercise = menu(d=menu_options, show=True, keyslist=True, ntf="Scelta non valida")
+    selected_exercise = menu(d=menu_options, show=True, keyslist=True, ntf="Invalid choice")
 
     if not selected_exercise:
         return
@@ -241,26 +246,30 @@ def show_leaderboard(all_scores):
             wins = ex_data.get("wins", 0)
             duration = ex_data.get("duration", 0)
             timestamp = ex_data.get("timestamp", None)
+            # <<< MODIFICA: Recuperiamo il tempo medio, che è già salvato
             avg_time = ex_data.get("average_time_per_guess", 0)
             leaderboard_data.append((user, score, performance, reps, wins, duration, timestamp, avg_time))
 
     if not leaderboard_data:
-        print(f"\nNessun punteggio trovato per l'esercizio '{selected_exercise}'.")
+        print(f"\nNo scores found for the '{selected_exercise}' exercise.")
     else:
         if selected_exercise == 'mixed':
             sorted_leaderboard = sorted(leaderboard_data, key=lambda item: item[1], reverse=True)
             
-            print(f"\n--- 🏆 CLASSIFICA: {selected_exercise.upper()} (Ordinata per Punteggio Totale) 🏆 ---")
-            header = f"{'Pos':<4} {'Utente':<12} {'Punti':>10} {'P/Min':>8} {'Win%':>5} {'Avg(s)':>7} {'Tempo':>6} {'Data':>17}"
+            print(f"\n--- 🏆 LEADERBOARD: {selected_exercise.upper()} (Ranked by Total Score) 🏆 ---")
+            # <<< MODIFICA: Aggiunta la colonna 'Avg(s)'
+            header = f"{'Pos':<4} {'User':<12} {'Score':>10} {'P/Min':>8} {'Win%':>5} {'Avg(s)':>7} {'Time':>6} {'Date':>17}"
             print(header)
             print("-" * len(header))
 
             for i, item in enumerate(sorted_leaderboard, 1):
+                # <<< MODIFICA: Estraiamo avg_time
                 user, score, performance, reps, wins, duration, timestamp, avg_time = item
-                accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/D"
+                accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/A"
                 time_str = f"{int(duration // 60):02d}:{int(duration % 60):02d}"
-                date_str = datetime.datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else "N/D"
+                date_str = datetime.datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else "N/A"
                 
+                # <<< MODIFICA: Aggiungiamo avg_time alla riga
                 row = f"{i:<4} {user[:12]:<12} {score:>10.0f} {performance:>8.0f} {accuracy_str:>5} {avg_time:>7.2f} {time_str:>6} {date_str:>17}"
                 print(row)
             print("-" * len(header))
@@ -268,26 +277,29 @@ def show_leaderboard(all_scores):
         else: 
             sorted_leaderboard = sorted(leaderboard_data, key=lambda item: item[2], reverse=True)
             
-            print(f"\n--- 🏆 CLASSIFICA: {selected_exercise.upper()} (Ordinata per Punti/Min) 🏆 ---")
-            header = f"{'Pos':<4} {'Utente':<12} {'Tent':>4} {'Win%':>5} {'Avg(s)':>7} {'P/Min':>8} {'Data':>17}"
+            print(f"\n--- 🏆 LEADERBOARD: {selected_exercise.upper()} (Ranked by Points/Min) 🏆 ---")
+            # <<< MODIFICA: Sostituita la colonna 'Time' con 'Avg(s)' e rinominata 'Score' in 'P/Min' per chiarezza
+            header = f"{'Pos':<4} {'User':<12} {'Atts':>4} {'Win%':>5} {'Avg(s)':>7} {'P/Min':>8} {'Date':>17}"
             print(header)
             print("-" * len(header))
 
             for i, item in enumerate(sorted_leaderboard, 1):
+                # <<< MODIFICA: Estraiamo avg_time
                 user, _, performance, reps, wins, _, timestamp, avg_time = item
-                accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/D"
-                date_str = datetime.datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else "N/D"
+                accuracy_str = f"{(wins / reps) * 100:3.0f}%" if reps > 0 else "N/A"
+                date_str = datetime.datetime.fromisoformat(timestamp).strftime('%Y-%m-%d %H:%M') if timestamp else "N/A"
                 
+                # <<< MODIFICA: Aggiungiamo avg_time e rimuoviamo il tempo totale
                 row = f"{i:<4} {user[:12]:<12} {reps:>4} {accuracy_str:>5} {avg_time:>7.2f} {performance:>8.0f} {date_str:>17}"
                 print(row)
             print("-" * len(header))
 
-    key(prompt="\nPremi un tasto per tornare al menu...")
+    key(prompt="\nPress any key to return to the menu...")
 
 # --- FUNZIONI DEGLI ESERCIZI ---
 
 def ExKnights(ripetitions):
-    '''Esercizio sui cavalli'''
+    '''Exercise on knights'''
     initial_rpt = ripetitions
     score=0; wins=0; scoretime=15
     timeex=time.time()
@@ -310,8 +322,8 @@ def ExKnights(ripetitions):
             if not possible_sq2: continue
             sq2 = random.choice(possible_sq2)
 
-        question_str = f"Mossa di cavallo: {sq1}-{sq2}"
-        print(f"\nCavallo: {columns[sq1[0]]} {sq1[1]} e {columns[sq2[0]]} {sq2[1]}?",end="",flush=True)
+        question_str = f"Knight move: {sq1}-{sq2}"
+        print(f"\nKnight: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}?",end="",flush=True)
         time.sleep(READING_TIME)
         
         now=time.time()
@@ -352,9 +364,8 @@ def ExKnights(ripetitions):
         
     duration=time.time()-timeex
     return score,scoreslist,duration,timeslist,wins,errors_list
-
 def ExBishops(ripetitions):
-    '''Esercizio sugli alfieri'''
+    '''Exercise on bishops'''
     initial_rpt = ripetitions
     score=0; wins=0; scoretime=15
     timeex=time.time()
@@ -371,8 +382,8 @@ def ExBishops(ripetitions):
                 sq2=random.choice(diagonals[kd])
                 if sq1!=sq2: break
         
-        question_str = f"Stessa diagonale: {sq1}-{sq2}"
-        print(f"\nAlfiere: {columns[sq1[0]]} {sq1[1]} e {columns[sq2[0]]} {sq2[1]}?",end="",flush=True)
+        question_str = f"Same diagonal: {sq1}-{sq2}"
+        print(f"\nBishop: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}?",end="",flush=True)
         time.sleep(READING_TIME)
         
         now=time.time()
@@ -412,10 +423,9 @@ def ExBishops(ripetitions):
         ripetitions-=1
     duration=time.time()-timeex
     return score,scoreslist,duration,timeslist,wins,errors_list
-
 def ExMixed(ripetitions):
     """
-    Esegue una serie di domande di tipo misto.
+    Esegue una serie di domande di tipo misto con il sistema di input corretto.
     """
     initial_rpt = ripetitions
     score = 0; wins = 0; scoretime = 15
@@ -425,11 +435,10 @@ def ExMixed(ripetitions):
 
     while ripetitions > 0:
         exercise_type = random.choice(['colors', 'knights', 'bishops'])
-        correct = False
 
         if exercise_type == 'colors':
             sq = random.choice(board)
-            print(f"\nColore per {columns[sq[0]]} {sq[1]}?", end="", flush=True)
+            print(f"\nColor: Is {columns[sq[0]]} {sq[1]}?", end="", flush=True)
             time.sleep(READING_TIME)
             
             now = time.time()
@@ -447,20 +456,20 @@ def ExMixed(ripetitions):
             if singlescore < 0: singlescore = 0
             
             correct_is_white = (get_square_color(sq) == 'w')
-            correct = (user_says_white == correct_is_white)
-            if correct:
+            if user_says_white == correct_is_white:
                 wins += 1
                 score += singlescore
             else:
                 errors_list.append({
-                    "question": f"Colore di {sq}",
-                    "user_answer": "Bianco" if user_says_white else "Nero",
-                    "correct_answer": "Bianco" if correct_is_white else "Nero"
+                    "question": f"Color of {sq}",
+                    "user_answer": "White" if user_says_white else "Black",
+                    "correct_answer": "White" if correct_is_white else "Black"
                 })
 
         elif exercise_type == 'knights':
             sq1 = random.choice(board)
             yes = random.choice([True, False])
+            # ... (logica di generazione identica a ExKnights)
             if not yes:
                 sq2 = Prox(sq1, 'N', range_limit=2)
             else:
@@ -473,8 +482,8 @@ def ExMixed(ripetitions):
                 if not possible_sq2: continue
                 sq2 = random.choice(possible_sq2)
 
-            question_str = f"Mossa di cavallo: {sq1}-{sq2}"
-            print(f"\nCavallo: {columns[sq1[0]]} {sq1[1]} e {columns[sq2[0]]} {sq2[1]}?", end="", flush=True)
+            question_str = f"Knight move: {sq1}-{sq2}"
+            print(f"\nKnight: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}?", end="", flush=True)
             time.sleep(READING_TIME)
             
             now = time.time()
@@ -506,6 +515,7 @@ def ExMixed(ripetitions):
             kd = random.choice(list(diagonals.keys()))
             sq1 = random.choice(diagonals[kd])
             yes = random.choice([True, False])
+            # ... (logica di generazione identica a ExBishops)
             if not yes:
                 sq2 = Prox(sq1, 'B', range_limit=7)
             else:
@@ -513,8 +523,8 @@ def ExMixed(ripetitions):
                     sq2 = random.choice(diagonals[kd])
                     if sq1 != sq2: break
             
-            question_str = f"Stessa diagonale: {sq1}-{sq2}"
-            print(f"\nAlfiere: {columns[sq1[0]]} {sq1[1]} e {columns[sq2[0]]} {sq2[1]}?", end="", flush=True)
+            question_str = f"Same diagonal: {sq1}-{sq2}"
+            print(f"\nBishop: {columns[sq1[0]]} {sq1[1]} and {columns[sq2[0]]} {sq2[1]}?", end="", flush=True)
             time.sleep(READING_TIME)
 
             now = time.time()
@@ -553,9 +563,8 @@ def ExMixed(ripetitions):
         
     duration = time.time() - timeex
     return score, duration, wins, errors_list
-
 def ExColors(ripetitions):
-    '''Esercizio sui colori delle case'''
+    '''Exercise on colors'''
     initial_rpt = ripetitions
     score=0; wins=0; scoretime=15
     timeex=time.time()
@@ -564,7 +573,7 @@ def ExColors(ripetitions):
     
     while ripetitions>0:
         sq = random.choice(board)
-        print(f"\nColore per {columns[sq[0]]} {sq[1]}?",end="",flush=True)
+        print(f"\nIs {columns[sq[0]]} {sq[1]}?",end="",flush=True)
         time.sleep(READING_TIME)
         
         now = time.time()
@@ -584,16 +593,16 @@ def ExColors(ripetitions):
         
         correct_is_white = (get_square_color(sq) == 'w')
         correct = (user_says_white == correct_is_white)
-        if correct:
+        if user_says_white == correct_is_white:
             timeslist.append(time.time()-now)
             wins+=1
             score+=singlescore
             scoreslist.append(singlescore)
         else:
             errors_list.append({
-                "question": f"Colore di {sq}",
-                "user_answer": "Bianco" if user_says_white else "Nero",
-                "correct_answer": "Bianco" if correct_is_white else "Nero"
+                "question": f"Color of {sq}",
+                "user_answer": "White" if user_says_white else "Black",
+                "correct_answer": "White" if correct_is_white else "Black"
             })
         
         current_rep_index = initial_rpt - ripetitions 
@@ -607,67 +616,67 @@ def ExColors(ripetitions):
         
     duration = time.time()-timeex
     return score,scoreslist,duration,timeslist,wins,errors_list
-
 def main():
+    # <<< MODIFICA: Carica i punteggi e chiede il nome utente all'inizio
     all_scores = load_scores()
-    print(f"Benvenuto in MemoBoard.\nIl tuo assistente per giocare a scacchi senza scacchiera.\nQuesta utility ti aiuta a visualizzare la scacchiera e a diventare un giocatore migliore.\n\tVersione {VERSION}.")
+    print(f"Welcome to MemoBoard.\nYour helper to play chess without chessboard.\nThis utility helps you to manage your chessboard and to become a better chess player.\n\tVersion {VERSION}.")
     Acusticator(['c4', 0.08, 0, EFFECT_VOLUME, 'e4', 0.08, 0, EFFECT_VOLUME, 'g4', 0.1, 0, EFFECT_VOLUME], kind=1)
-    username = input("\nPer favore, inserisci il tuo nome: ").strip().title()
+    username = input("\nPlease give me your name: ").strip().title()
     if not username:
-        username = "UtentePredefinito"
-    print(f"\nBentornato, {username}! Pronto ad allenarti? Digita 'help' o '?'.")
+        username = "DefaultUser"
+    print(f"\nWelcome back, {username}! Ready to train? Type 'help' or '?'.")
     
-    mnu["chart"] = "Mostra la classifica"
+    mnu["chart"] = "Show the leaderboard"
     while True:
-        s=menu(d=mnu, ntf="Comando non trovato", show=True, keyslist=True)
+        s=menu(d=mnu, ntf="Command not found", show=True, keyslist=True)
         if s==".": break
         
         elif s=="colors":
-            print("Indovina il colore della casa.\nRispondi premendo ESC per il nero e INVIO per il bianco.")
-            rpt=dgt(prompt="\nBello! E buona fortuna con i colori, quante domande vuoi fare? ",kind="i",imin=5,imax=150)
-            key(prompt="Pronto?")
-            print(" Inizio")
+            print("Guess the square color.\n Please answer by pressing ESCAPE for black and ENTER for white.")
+            rpt=dgt(prompt="\nNice and good luck with colors, how many guesses you want to take? ",kind="i",imin=5,imax=150)
+            key(prompt="Go?")
+            print(" Start")
             score,scoreslist,duration,timeslist,wins,errors_list = ExColors(rpt)
             if errors_list:
-                print("\n--- I tuoi errori ---")
+                print("\n--- Your mistakes---")
                 for err in errors_list:
                     q = err['question']
                     ua = err['user_answer']
                     ca = err['correct_answer']
-                    print(f"> Domanda: {q} | La tua risposta: '{ua}', corretta: '{ca}'")
-                key("\nPremi un tasto per procedere alla classifica...")
+                    print(f"> Question: {q} | Your answer: '{ua}', correct: '{ca}'")
+                key("\nAny key to proceed to the Leaderboard...")
             report_and_update_scores(all_scores, username, "colors", rpt, score, duration, wins)
 
         elif s=="knights":
-            print("Indovina se due case sono a un salto di cavallo.\nRispondi premendo INVIO per sì e ESC per no.")
-            rpt=dgt(prompt="\nBene, divertiti con il salto del cavallo, quante domande vuoi fare? ",kind="i",imin=5,imax=150)
-            key(prompt="Pronto?")
-            print(" Inizio")
+            print("Guess if these two squares are on a knight's jump.\n Please answer by pressing ENTER for yes and ESCCAPE for no.")
+            rpt=dgt(prompt="\nGood and have fun with knight's jump, how many guesses you want to take? ",kind="i",imin=5,imax=150)
+            key(prompt="Go?")
+            print(" Start")
             score,scoreslist,duration,timeslist,wins,errors_list = ExKnights(rpt)
             if errors_list:
-                print("\n--- I tuoi errori ---")
+                print("\n--- Your mistakes---")
                 for err in errors_list:
                     q = err['question']
                     ua = "Sì" if err['user_answer'] == 'y' else "No"
                     ca = "Sì" if err['correct_answer'] == 'y' else "No"
-                    print(f"> Domanda: {q} | La tua risposta: '{ua}', Corretta: '{ca}'")
-                key("\nPremi un tasto per procedere alla classifica...")
+                    print(f"> Question: {q} | Your answer: '{ua}', Correct: '{ca}'")
+                key("\nAny key to proceed to the Leaderboard...")
             report_and_update_scores(all_scores, username, "knights", rpt, score, duration, wins)
             
         elif s=="bishops":
-            print("Indovina se due case sono sulla stessa diagonale.\nRispondi premendo INVIO per sì e ESC per no.")
-            rpt=dgt(prompt="\nBene, divertiti con l'esercizio dell'alfiere, quante domande vuoi fare? ",kind="i",imin=5,imax=150)
-            key(prompt="Pronto?")
-            print(" Inizio")
+            print("Guess if these two squares are on the same diagonal.\n Please answer by pressing ENTER for yes and ESCAPE for no.")
+            rpt=dgt(prompt="\nGood and have fun with Bishop's exercise, how many guesses you want to take? ",kind="i",imin=5,imax=150)
+            key(prompt="Go?")
+            print(" Start")
             score,scoreslist,duration,timeslist,wins,errors_list = ExBishops(rpt)
             if errors_list:
-                print("\n--- I tuoi errori ---")
+                print("\n--- Your mistakes---")
                 for err in errors_list:
                     q = err['question']
                     ua = "Sì" if err['user_answer'] == 'y' else "No"
                     ca = "Sì" if err['correct_answer'] == 'y' else "No"
-                    print(f"> Domanda: {q} | La tua risposta: '{ua}', Corretta: '{ca}'")
-                key("\nPremi un tasto per procedere alla classifica...")
+                    print(f"> Question: {q} | Your answer: '{ua}', Correct: '{ca}'")
+                key("\nAny key to proceed to the leaderboard...")
             report_and_update_scores(all_scores, username, "bishops", rpt, score, duration, wins)
 
         elif s=="chart":
@@ -677,40 +686,39 @@ def main():
         elif s=="help":
             Acusticator(['c5', 0.05, -0.5, EFFECT_VOLUME, 'c5', 0.08, 0.5, EFFECT_VOLUME], kind=1)
             manuale(nf="README.md")
-            
         elif s == "mixed":
-            print("\nBenvenuto alla Sfida Mista!")
-            print("Saranno presentate 100 domande di tipo casuale (colori, cavalli, alfieri).")
-            print("Questa è la prova definitiva delle tue abilità e della tua resistenza. Buona fortuna!\nRicorda di rispondere con INVIO per sì/bianco e ESC per no/nero.")
+            print("\nWelcome to the Mixed Challenge!")
+            print("100 questions of random types (colors, knights, bishops) will be presented.")
+            print("This is the ultimate test of your skills and endurance. Good luck!\nRemeber to answer ENTER for yes and ESCAPE for no.\nWhen the question regards a square color: ENTER for white and ESCAPE for black.")
             
-            key(prompt="Sei pronto per iniziare? Via!")
+            key(prompt="Are you ready to begin? Go!")
             score, duration, wins, errors_list = ExMixed(100)
-            rpt = 100
+            rpt = 100 # Il numero di tentativi è fisso
             
-            print("\n--- SFIDA MISTA COMPLETATA! ---")
+            print("\n--- MIXED CHALLENGE COMPLETE! ---")
             if errors_list:
-                print("\n--- I tuoi errori nella Sfida Mista ---")
+                print("\n--- Your mistakes within the Mixed Challenge ---")
                 for err in errors_list:
                     q = err['question']
                     ua = err['user_answer']
                     ca = err['correct_answer']
 
+                    # Controlla se la risposta è di tipo Sì/No o un colore
                     if ua in ('y', 'n'):
                         ua_fmt = "Sì" if ua == 'y' else "No"
                         ca_fmt = "Sì" if ca == 'y' else "No"
-                        print(f"> {q} | La tua risposta: '{ua_fmt}', Corretta: '{ca_fmt}'")
+                        print(f"> {q} | Tua risposta: '{ua_fmt}', Corretta: '{ca_fmt}'")
                     else: # Altrimenti è un errore di colore
-                        print(f"> {q} | La tua risposta: '{ua}', Corretta: '{ca}'")
+                        print(f"> {q} | Tua risposta: '{ua}', Corretta: '{ca}'")
 
-                key("\nPremi un tasto per procedere alla classifica...")             
+                key("\nAny key to proceed to the Leaderboard...")            
             report_and_update_scores(all_scores, username, "mixed", rpt, score, duration, wins)
-
+    # <<< MODIFICA: Salva tutti i punteggi prima di uscire
     save_scores(all_scores)
     Acusticator(['g4', 0.1, 0, EFFECT_VOLUME, 'e4', 0.08, 0, EFFECT_VOLUME, 'c4', 0.15, 0, EFFECT_VOLUME], kind=1, sync=True)
     endtime=time.time()-STARTTIME
-    print(f"\nMemoBoard {VERSION}, eseguito per {int(endtime/60)} minuti e {int(endtime%60)} secondi.\n\tControlla memoboard.txt. Arrivederci!")
-    log.write(f"\n### Arrivederci da Memoboard {VERSION}, eseguito per {int(endtime/60)} minuti e {int(endtime%60)} secondi.\n")
+    print(f"\nMemoboard {VERSION}, ran for {int(endtime/60)} minutes and {int(endtime%60)} seconds.\n\tPlease check memoboard.txt Bye-Bye")
+    log.write(f"\n### Goodbye from Memoboard {VERSION}, ran for {int(endtime/60)} minutes and {int(endtime%60)} seconds.\n")
     log.close()
-
 if __name__ == "__main__":
     main()
