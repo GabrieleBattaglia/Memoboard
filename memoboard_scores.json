@@ -31,14 +31,14 @@
       "score_per_minute": 279958.94832369615
     },
     "mixed": {
-      "score": 1065703.7851810455,
-      "wins": 92,
+      "score": 1113424.0365028381,
+      "wins": 91,
       "repetitions": 100,
-      "duration": 460.2087664604187,
-      "average_time_per_guess": 4.602087664604187,
-      "score_per_win": 11583.736795446148,
-      "timestamp": "2025-10-06T06:48:39.494022",
-      "score_per_minute": 138941.78418776867
+      "duration": 371.9543824195862,
+      "average_time_per_guess": 3.7195438241958616,
+      "score_per_win": 12235.42897255866,
+      "timestamp": "2025-10-10T23:37:32.868432",
+      "score_per_minute": 179606.5467910252
     }
   }
 }
